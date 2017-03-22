@@ -1,12 +1,15 @@
 package com.djd.controller;
 
 import com.djd.model.ResultBase;
+import com.djd.utils.FileOperateUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,5 +41,32 @@ public class DataController {
         resultList.add("a");
         resultList.add("测试");
         return resultList;
+    }
+
+    private void init(HttpServletRequest request) {
+        if(FileOperateUtil.FILEDIR == null){
+            FileOperateUtil.FILEDIR = request.getSession().getServletContext().getRealPath("/") + "file/";
+        }
+    }
+
+    @ResponseBody
+    @RequestMapping(value="data/upload",method = RequestMethod.POST)
+    public ResultBase upload(HttpServletRequest request){
+        init(request);
+        ResultBase resultBase = new ResultBase();
+        try {
+            MultipartHttpServletRequest mRequest = (MultipartHttpServletRequest) request;
+            String mark = mRequest.getParameter("mark");
+            FileOperateUtil.upload(request);
+            resultBase.isSuccess = true;
+            resultBase.setResponseMsg("上传文件成功"+":"+mark);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultBase.isSuccess = false;
+            resultBase.setResponseMsg("上传文件失败："+e.getCause().toString());
+        }
+        resultBase.setNumberLeft(0);
+        resultBase.setResponseCode(0);
+        return resultBase;
     }
 }
