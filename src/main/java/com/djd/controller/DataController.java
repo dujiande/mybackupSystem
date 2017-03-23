@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,5 +70,22 @@ public class DataController {
         resultBase.setNumberLeft(0);
         resultBase.setResponseCode(0);
         return resultBase;
+    }
+
+    @RequestMapping(value="data/download")
+    public void download(HttpServletRequest request, HttpServletResponse response){
+        init(request);
+        try {
+            String downloadfFileName = request.getParameter("filename");
+            downloadfFileName = new String(downloadfFileName.getBytes("iso-8859-1"),"utf-8");
+            String fileName = downloadfFileName.substring(downloadfFileName.indexOf("_")+1);
+            String userAgent = request.getHeader("User-Agent");
+            byte[] bytes = userAgent.contains("MSIE") ? fileName.getBytes() : fileName.getBytes("UTF-8");
+            fileName = new String(bytes, "ISO-8859-1");
+            response.setHeader("Content-disposition", String.format("attachment; filename=\"%s\"", fileName));
+            FileOperateUtil.download(downloadfFileName, response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
